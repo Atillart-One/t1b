@@ -1,8 +1,23 @@
+import os
 # IMPORT DISCORD.PY. ALLOWS ACCESS TO DISCORD'S API.
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
+from itertools import cycle
+from flask import Flask
+from threading import Thread
 
-token = input("Enter Token: ")
+app = Flask('')
+
+@app.route('/')
+def main():
+  return "Your Bot Is Ready"
+
+def run():
+  app.run(host="0.0.0.0", port=8000)
+
+def keep_alive():
+  server = Thread(target=run)
+  server.start()
 
 # Tekken stuff
 class player:
@@ -173,27 +188,34 @@ def game_over(p1=p1, p2=p2, start=start):
 bot = discord.Client()
 bot = commands.Bot(command_prefix='!t1b ')
 current_channel = None
+
 # EVENT LISTENER FOR WHEN THE BOT HAS SWITCHED FROM OFFLINE TO ONLINE.
+status = cycle(['with Python','JetHub'])
+
 @bot.event
 async def on_ready():
-	# CREATES A COUNTER TO KEEP TRACK OF HOW MANY GUILDS / SERVERS THE BOT IS CONNECTED TO.
-	guild_count = 0
-
+  change_status.start()
+  print("Your bot is ready")
+  # CREATES A COUNTER TO KEEP TRACK OF HOW MANY GUILDS / SERVERS THE BOT IS CONNECTED TO.
+  guild_count = 0
 	# LOOPS THROUGH ALL THE GUILD / SERVERS THAT THE BOT IS ASSOCIATED WITH.
-	for guild in bot.guilds:
+  for guild in bot.guilds:
 		# PRINT THE SERVER'S ID AND NAME.
-		print(f"- {guild.id} (name: {guild.name})")
+	  print(f"- {guild.id} (name: {guild.name})")
 
 		# INCREMENTS THE GUILD COUNTER.
-		guild_count = guild_count + 1
+	  guild_count = guild_count + 1
 
 	# PRINTS HOW MANY GUILDS / SERVERS THE BOT IS IN.
-	print("T1B is in " + str(guild_count) + " guilds.")
+  print("T1B is in " + str(guild_count) + " guilds.")
+
+@tasks.loop(seconds=10)
+async def change_status():
+  await bot.change_presence(activity=discord.Game(next(status)))
 
 # EVENT LISTENER FOR WHEN A NEW MESSAGE IS SENT TO A CHANNEL.
 @bot.command()
 async def play(ctx):
-	# CHECKS IF THE MESSAGE THAT WAS SENT IS EQUAL TO "HELLO".
             if len(players) == 2:
                 await ctx.send("Two people are already playing.")
 
@@ -302,4 +324,4 @@ async def move(ctx, arg):
     else:
         await ctx.send("You are not a player.")
 
-bot.run(token)
+bot.run(os.environ['token'])
