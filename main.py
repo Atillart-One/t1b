@@ -1,7 +1,8 @@
 # IMPORT DISCORD.PY. ALLOWS ACCESS TO DISCORD'S API.
 import discord
 from discord.ext import commands
-import discord_token
+
+token = input("Enter Token: ")
 
 # Tekken stuff
 class player:
@@ -301,4 +302,4 @@ async def move(ctx, arg):
     else:
         await ctx.send("You are not a player.")
 
-bot.run(discord_token.token)
+bot.run(token)
